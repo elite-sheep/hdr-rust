@@ -1,3 +1,6 @@
+extern crate pretty_env_logger;
+extern crate log;
+
 use opencv::core::Mat;
 use opencv::imgcodecs::{imread, imwrite};
 use opencv::imgproc::{cvt_color, COLOR_RGB2GRAY};
@@ -7,6 +10,9 @@ use opencv::types::VectorOfi32;
 use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    pretty_env_logger::init();
+    log::trace!("HDR-Rust Starts.");
+
     let img: Mat = imread("/home/yucwang/Pictures/test_pictures/haibara_1.jpg", 1)
         .expect("Input pictures failed.");
 
@@ -17,5 +23,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     imwrite("/home/yucwang/Desktop/haibara_2_transformed.jpg", &img, &img_write_types)
         .expect("Output pictures failed.");
 
+    log::trace!("HDR-Rust ends.");
     Ok(())
 }
