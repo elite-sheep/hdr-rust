@@ -3,11 +3,13 @@ extern crate log;
 
 use opencv::core::Mat;
 use opencv::imgcodecs::{imread, imwrite};
-use opencv::imgproc::{cvt_color, COLOR_RGB2GRAY};
 use opencv::prelude::Vector;
 use opencv::types::VectorOfi32;
+use opencv::prelude::MatTrait;
 
 use std::error::Error;
+
+#[path = "./base/opencv_utils.rs"] mod opencv_utils;
 
 fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
@@ -16,11 +18,17 @@ fn main() -> Result<(), Box<dyn Error>> {
     let img: Mat = imread("/home/yucwang/Pictures/test_pictures/haibara_1.jpg", 1)
         .expect("Input pictures failed.");
 
-    let mut gray_img = Mat::default()?;
-    cvt_color(&img, &mut gray_img, COLOR_RGB2GRAY, 0)?;
+    // let mut gray_img = Mat::default()?;
+    let gray_img = opencv_utils::compute_mtb_image(&img).expect("compute mtb image failed.");
 
+
+    let pixel: i32 = gray_img.cols();
+    let origin: i32 = img.cols();
+    println!("{} {}.", origin, pixel);
+
+    log::trace!("HDR-Rust Starts.");
     let img_write_types = VectorOfi32::with_capacity(0);
-    imwrite("/home/yucwang/Desktop/haibara_2_transformed.jpg", &img, &img_write_types)
+    imwrite("/home/yucwang/Desktop/haibara_2_transformed.bmp", &gray_img, &img_write_types)
         .expect("Output pictures failed.");
 
     log::trace!("HDR-Rust ends.");
