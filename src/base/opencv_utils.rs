@@ -13,7 +13,8 @@ pub fn compute_mtb_image(src: &Mat,
                          low_threshold: f32,
                          high_threshold: f32) 
     -> Result<(), Box<dyn Error>> {
-    log::trace!("Compute MTB image starts.");
+    log::trace!("Compute MTB image starts: low_threshold: {}, high_threshold: {}"
+                , low_threshold, high_threshold);
 
     let rows: i32 = src.rows();
     let cols: i32 = src.cols();
@@ -56,8 +57,6 @@ pub fn compute_mtb_image(src: &Mat,
                     mtb_pixel_value = 255;
                 } else if mtb_pixel_value <= mtb_pixels_sorted[low_index] {
                     mtb_pixel_value = 0;
-                } else {
-                    mtb_pixel_value = 128;
                 }
 
                 let mtb_pixel: &mut u8 = dst.at_2d_mut(row, col)?;

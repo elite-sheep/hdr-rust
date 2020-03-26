@@ -18,9 +18,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .expect("Input pictures failed.");
 
     let mut gray_img = Mat::default()?;
-    opencv_utils::compute_mtb_image(&img, &mut gray_img, -1.0, -1.0).expect("compute mtb image failed.");
+    opencv_utils::compute_mtb_image(&img, &mut gray_img, 0.45, 0.55).expect("compute mtb image failed.");
 
-    log::trace!("HDR-Rust Starts.");
     let img_write_types = VectorOfi32::with_capacity(0);
     imwrite("/home/yucwang/Desktop/haibara_2_transformed.jpg", &gray_img, &img_write_types)
         .expect("Output pictures failed.");
