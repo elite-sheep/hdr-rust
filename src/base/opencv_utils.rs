@@ -3,68 +3,104 @@
 use opencv::core::{CV_8UC1, Mat, Vec3b};
 use opencv::prelude::MatTrait;
 use std::error::Error;
-use std::convert::TryInto;
 
 // This file contains some helper function of opencv
 // It is designed and implemented following c coding style.
 
-pub fn compute_mtb_image(src: &Mat, 
+pub fn compute_exclusive_image(src: &Mat, 
                          dst: &mut Mat,
-                         low_threshold: f32,
-                         high_threshold: f32) 
+                         offset: u8) 
     -> Result<(), Box<dyn Error>> {
-    log::trace!("Compute MTB image starts: low_threshold: {}, high_threshold: {}"
-                , low_threshold, high_threshold);
-
-    let rows: i32 = src.rows();
-    let cols: i32 = src.cols();
-    let mut mtb_pixels: Vec<u8> = Vec::new();
+    let rows = src.rows();
+    let cols = src.cols();
 
     unsafe {
-        mtb_pixels.reserve((rows * cols).try_into().unwrap());
         dst.create_rows_cols(rows, cols, CV_8UC1)?;
+    }
 
-        for row in 0..rows {
-            for col in 0..cols {
-                let pixel: &Vec3b = src.at_2d(row, col)?;
-                let pixel_b: u32 = pixel[0] as u32;
-                let pixel_g: u32 = pixel[1] as u32;
-                let pixel_r: u32 = pixel[2] as u32;
-                let row_mtb_pixel: u32 = 19 * pixel_b + 183 * pixel_g + 54 * pixel_r;
-                mtb_pixels.push((row_mtb_pixel >> 8) as u8);
-            }
-        }
-
-        let mut mtb_pixels_sorted: Vec<u8> = mtb_pixels.clone();
-        mtb_pixels_sorted.sort();
-
-        let mut will_abandon_pixel: bool = false;
-        if low_threshold < 0.0 || high_threshold < 0.0 {
-            will_abandon_pixel = true;
-        }
-        let mut low_index: usize = ((rows * cols) >> 1).try_into().unwrap();
-        let mut high_index: usize = low_index;
-        if !will_abandon_pixel {
-            low_index = (((rows * cols) as f32) * low_threshold) as usize;
-            high_index = (((rows * cols) as f32) * high_threshold) as usize;
-        }
-        
-        for row in 0..rows {
-            for col in 0..cols {
-                let index: usize = (row * cols + col).try_into().unwrap();
-                let mut mtb_pixel_value = mtb_pixels[index];
-                if mtb_pixel_value > mtb_pixels_sorted[high_index] {
-                    mtb_pixel_value = 255;
-                } else if mtb_pixel_value <= mtb_pixels_sorted[low_index] {
-                    mtb_pixel_value = 0;
-                }
-
-                let mtb_pixel: &mut u8 = dst.at_2d_mut(row, col)?;
-                *mtb_pixel = mtb_pixel_value;
-            }
+    for i in 0..rows {
+        for j in 0..cols {
+            let pixel_value: Vec3b = *src.at_2d::<Vec3b>(i, j).unwrap();
+            let pixel_b = pixel_value[0] as u16;
+            let pixel_g = pixel_value[1] as u16;
+            let pixel_r = pixel_value[2] as u16;
+            *dst.at_2d_mut::<u8>(i, j).unwrap() = mix_rgb_to_gray(pixel_b, pixel_g, pixel_r);
         }
     }
 
-    log::trace!("Compute MTB image ends.");
+    let median_pixel_value = find_median(src);
+    for i in 0..rows {
+        for j in 0..cols {
+            let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
+            if pixel_value <= median_pixel_value + offset && pixel_value >= median_pixel_value - offset {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 0;
+            } else {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 255;
+            }
+        }
+    }
     Ok(())
+}
+
+pub fn compute_mtb_image(src: &Mat, 
+                         dst: &mut Mat) 
+    -> Result<(), Box<dyn Error>> {
+    let rows = src.rows();
+    let cols = src.cols();
+
+    unsafe {
+        dst.create_rows_cols(rows, cols, CV_8UC1)?;
+    }
+
+    for i in 0..rows {
+        for j in 0..cols {
+            let pixel_value: Vec3b = *src.at_2d::<Vec3b>(i, j).unwrap();
+            let pixel_b = pixel_value[0] as u16;
+            let pixel_g = pixel_value[1] as u16;
+            let pixel_r = pixel_value[2] as u16;
+            *dst.at_2d_mut::<u8>(i, j).unwrap() = mix_rgb_to_gray(pixel_b, pixel_g, pixel_r);
+        }
+    }
+
+    let median_pixel_value = find_median(src);
+    for i in 0..rows {
+        for j in 0..cols {
+            let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
+            if pixel_value > median_pixel_value {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 255;
+            } else {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 0;
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn find_median(img: &Mat) -> u8 {
+    let mut pixel_hist: [i32; 256] = [0; 256];
+
+    for i in 0..img.rows() {
+        for j in 0..img.cols() {
+            let pixel_value: u8 = *img.at_2d::<u8>(i, j).unwrap();
+            pixel_hist[pixel_value as usize] += 1;
+        }
+    }
+
+    let median_index: i32 = (img.rows() * img.cols()) >> 1;
+    let mut cur_pixel_count: i32 = 0;
+    let mut res = 255;
+
+    for i in 0..256 {
+        cur_pixel_count += pixel_hist[i];
+        if cur_pixel_count >= median_index {
+            res = i;
+            break;
+        }
+    }
+
+    return res as u8;
+}
+
+fn mix_rgb_to_gray(b: u16, g: u16, r: u16) -> u8 {
+    return ((19 * b + 183 * g + 54 * r) >> 8) as u8; 
 }

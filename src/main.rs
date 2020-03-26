@@ -14,14 +14,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
     log::trace!("HDR-Rust Starts.");
 
-    let img: Mat = imread("/home/yucwang/Pictures/test_pictures/haibara_1.jpg", 1)
+    let img: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV-4.72.jpeg", 1)
         .expect("Input pictures failed.");
 
     let mut gray_img = Mat::default()?;
-    opencv_utils::compute_mtb_image(&img, &mut gray_img, 0.45, 0.55).expect("compute mtb image failed.");
+    opencv_utils::compute_mtb_image(&img, &mut gray_img).expect("compute mtb image failed.");
 
     let img_write_types = VectorOfi32::with_capacity(0);
-    imwrite("/home/yucwang/Desktop/haibara_2_transformed.jpg", &gray_img, &img_write_types)
+    imwrite("/home/yucwang/Desktop/lotus_1.jpeg", &gray_img, &img_write_types)
         .expect("Output pictures failed.");
 
     log::trace!("HDR-Rust ends.");
