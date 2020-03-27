@@ -29,13 +29,17 @@ pub fn compute_exclusive_image(src: &Mat,
     }
 
     let median_pixel_value = find_median(dst);
-    let mut high_bound = median_pixel_value;
+    let high_bound;
     if 255 - median_pixel_value < offset {
         high_bound = 255;
+    } else {
+        high_bound = median_pixel_value + offset;
     }
-    let mut low_bound = median_pixel_value;
+    let low_bound;
     if median_pixel_value < offset {
         low_bound = 0;
+    } else {
+        low_bound = median_pixel_value - offset;
     }
     for i in 0..rows {
         for j in 0..cols {

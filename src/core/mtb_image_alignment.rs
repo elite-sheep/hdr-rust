@@ -24,10 +24,11 @@ pub fn align(images: &VectorOfMat,
     compute_image_pyramid(&images.get(pivot)?, &mut pivot_image_pyramid_mtb, &mut pivot_image_pyramid_exor, max_level)?;
 
     let move_x: [i32; 9] = [-1, -1, -1, 0, 0, 0, 1, 1, 1];
-    let move_y: [i32; 9] = [-1, 0, 1, -1, 0, 1, -1, 0, 1];
+    let move_y: [i32; 9] = [0, -1, 1, -1, 0, 1, 1, 0, -1];
     for i in 0..images.len() {
         if i == pivot {
             aligned_images.push(images.get(pivot)?.clone()?);
+            continue;
         } else {
             let mut offset_x: i32 = 0;
             let mut offset_y: i32 = 0;
@@ -52,11 +53,12 @@ pub fn align(images: &VectorOfMat,
                         &image_pyramid_exor.get((max_level-j-1).try_into().unwrap())?, &mut cur_exor, &translation_matrix)?;
 
                     let cur_similarity: f64 = compute_image_similarity(&cur_mtb, &cur_exor, 
-                                                                  &pivot_image_pyramid_mtb.get((max_level-j-1).try_into().unwrap())?, 
-                                                                  &pivot_image_pyramid_exor.get((max_level-j-1).try_into().unwrap())?)?;
+                                                    &pivot_image_pyramid_mtb.get((max_level-j-1).try_into().unwrap())?, 
+                                                    &pivot_image_pyramid_exor.get((max_level-j-1).try_into().unwrap())?)?;
+                    let penalty = (move_x[k].abs() as f64) + (move_y[k].abs() as f64);
 
-                    if best_similarity < 0.0 || best_similarity > cur_similarity {
-                        best_similarity = cur_similarity;
+                    if best_similarity < 0.0 || best_similarity > cur_similarity + penalty {
+                        best_similarity = cur_similarity + penalty;
                         best_move = k;
                     }
                 }
@@ -95,9 +97,6 @@ fn compute_image_pyramid(src: &Mat,
             opencv_utils::compute_mtb_image(&src_clone, &mut mtb_image)?;
             opencv_utils::compute_exclusive_image(&src_clone, &mut exclusive_image, 4)?;
 
-            log::trace!("mtb size: {}, {}", mtb_image.rows(), mtb_image.cols());
-            log::trace!("exor size: {}, {}", exclusive_image.rows(), exclusive_image.cols());
-
             out_mtb_images.push(mtb_image);
             out_exclusive_images.push(exclusive_image);
 
@@ -116,9 +115,9 @@ fn compute_image_similarity(a_mtb: &Mat,
     let mut image_and = Mat::default()?;
     let mut image_xor = Mat::default()?;
     opencv::core::bitwise_xor(a_mtb, b_mtb, &mut image_xor, &opencv::core::no_array()?)?;
-    opencv::core::bitwise_and(&image_xor, a_exor, &mut image_and, &opencv::core::no_array()?)?;
-    opencv::core::bitwise_and(&image_and, b_exor, &mut image_xor, &opencv::core::no_array()?)?;
+    opencv::core::bitwise_and(&image_xor, b_exor, &mut image_and, &opencv::core::no_array()?)?;
+    opencv::core::bitwise_and(&image_and, a_exor, &mut image_xor, &opencv::core::no_array()?)?;
     let sum: f64 = opencv::core::sum_elems(&image_xor).unwrap()[0];
 
-    Ok(sum)
+    Ok(sum / 255.0)
 }
