@@ -1,6 +1,6 @@
 /* Copyright 2020 Yuchen Wong */
 
-use opencv::core::{CV_8UC1, Mat, Vec3b};
+use opencv::core::{CV_8UC1, Mat, Size_, Vec3b};
 use opencv::prelude::MatTrait;
 use std::error::Error;
 
@@ -28,11 +28,19 @@ pub fn compute_exclusive_image(src: &Mat,
         }
     }
 
-    let median_pixel_value = find_median(src);
+    let median_pixel_value = find_median(dst);
+    let mut high_bound = median_pixel_value;
+    if 255 - median_pixel_value < offset {
+        high_bound = 255;
+    }
+    let mut low_bound = median_pixel_value;
+    if median_pixel_value < offset {
+        low_bound = 0;
+    }
     for i in 0..rows {
         for j in 0..cols {
             let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
-            if pixel_value <= median_pixel_value + offset && pixel_value >= median_pixel_value - offset {
+            if pixel_value <=high_bound && pixel_value >= low_bound {
                 *dst.at_2d_mut::<u8>(i, j).unwrap() = 0;
             } else {
                 *dst.at_2d_mut::<u8>(i, j).unwrap() = 255;
@@ -62,7 +70,7 @@ pub fn compute_mtb_image(src: &Mat,
         }
     }
 
-    let median_pixel_value = find_median(src);
+    let median_pixel_value = find_median(dst);
     for i in 0..rows {
         for j in 0..cols {
             let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
@@ -73,6 +81,25 @@ pub fn compute_mtb_image(src: &Mat,
             }
         }
     }
+    Ok(())
+}
+
+pub fn resize_image_with_default(src: &Mat,
+                                 dst: &mut Mat,
+                                 fx: f64,
+                                 fy: f64) -> Result<(), Box<dyn Error>> {
+    opencv::imgproc::resize(src, dst, Size_::default(), 
+                            fx, fy, opencv::imgproc::INTER_LINEAR)?;
+    Ok(())
+}
+
+pub fn warp_affine_with_default(src: &Mat,
+                                dst: &mut Mat,
+                                transform: &Mat) -> Result<(), Box<dyn Error>> {
+    opencv::imgproc::warp_affine(src, dst, transform, Size_::default(), 
+                opencv::imgproc::INTER_LINEAR, 
+                opencv::core::BORDER_CONSTANT,
+                opencv::core::Scalar_::default())?;
     Ok(())
 }
 

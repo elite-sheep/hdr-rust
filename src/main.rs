@@ -4,25 +4,32 @@ extern crate log;
 use opencv::core::Mat;
 use opencv::imgcodecs::{imread, imwrite};
 use opencv::prelude::Vector;
-use opencv::types::VectorOfi32;
+use opencv::types::{VectorOfi32, VectorOfMat};
 
 use std::error::Error;
 
-#[path = "./base/opencv_utils.rs"] mod opencv_utils;
+#[path = "./core/mtb_image_alignment.rs"] mod mtb;
 
 fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
     log::trace!("HDR-Rust Starts.");
 
-    let img: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV-4.72.jpeg", 1)
-        .expect("Input pictures failed.");
+    let mut images: VectorOfMat = VectorOfMat::new();
+    let image1: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV+1.51.jpeg", 1)?;
+    let image2: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV-1.82.jpeg", 1)?;
+    let image3: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV-4.72.jpeg", 1)?;
+    images.push(image1);
+    images.push(image2);
+    images.push(image3);
 
-    let mut gray_img = Mat::default()?;
-    opencv_utils::compute_mtb_image(&img, &mut gray_img).expect("compute mtb image failed.");
+    let mut out_aligned_images = VectorOfMat::new();
+    mtb::align(&images, &mut out_aligned_images, 5)?;
 
+    log::trace!("Starting output images.");
     let img_write_types = VectorOfi32::with_capacity(0);
-    imwrite("/home/yucwang/Desktop/lotus_1.jpeg", &gray_img, &img_write_types)
-        .expect("Output pictures failed.");
+    imwrite("/home/yucwang/Desktop/lotus_1.jpeg", &out_aligned_images.get(0)?, &img_write_types)?;
+    imwrite("/home/yucwang/Desktop/lotus_2.jpeg", &out_aligned_images.get(1)?, &img_write_types)?;
+    imwrite("/home/yucwang/Desktop/lotus_3.jpeg", &out_aligned_images.get(2)?, &img_write_types)?;
 
     log::trace!("HDR-Rust ends.");
     Ok(())
