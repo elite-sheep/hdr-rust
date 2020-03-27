@@ -14,19 +14,7 @@ pub fn compute_exclusive_image(src: &Mat,
     let rows = src.rows();
     let cols = src.cols();
 
-    unsafe {
-        dst.create_rows_cols(rows, cols, CV_8UC1)?;
-    }
-
-    for i in 0..rows {
-        for j in 0..cols {
-            let pixel_value: Vec3b = *src.at_2d::<Vec3b>(i, j).unwrap();
-            let pixel_b = pixel_value[0] as u16;
-            let pixel_g = pixel_value[1] as u16;
-            let pixel_r = pixel_value[2] as u16;
-            *dst.at_2d_mut::<u8>(i, j).unwrap() = mix_rgb_to_gray(pixel_b, pixel_g, pixel_r);
-        }
-    }
+    cvt_rgb_image_to_grey(src, dst)?;
 
     let median_pixel_value = find_median(dst);
     let high_bound;
@@ -60,6 +48,27 @@ pub fn compute_mtb_image(src: &Mat,
     let rows = src.rows();
     let cols = src.cols();
 
+    cvt_rgb_image_to_grey(src, dst)?;
+
+    let median_pixel_value = find_median(dst);
+    for i in 0..rows {
+        for j in 0..cols {
+            let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
+            if pixel_value > median_pixel_value {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 255;
+            } else {
+                *dst.at_2d_mut::<u8>(i, j).unwrap() = 0;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn cvt_rgb_image_to_grey(src: &Mat,
+                         dst: &mut Mat) -> Result<(), Box<dyn Error>> {
+    let rows = src.rows();
+    let cols = src.cols();
+
     unsafe {
         dst.create_rows_cols(rows, cols, CV_8UC1)?;
     }
@@ -74,17 +83,6 @@ pub fn compute_mtb_image(src: &Mat,
         }
     }
 
-    let median_pixel_value = find_median(dst);
-    for i in 0..rows {
-        for j in 0..cols {
-            let pixel_value: u8 = *dst.at_2d::<u8>(i, j).unwrap();
-            if pixel_value > median_pixel_value {
-                *dst.at_2d_mut::<u8>(i, j).unwrap() = 255;
-            } else {
-                *dst.at_2d_mut::<u8>(i, j).unwrap() = 0;
-            }
-        }
-    }
     Ok(())
 }
 
@@ -132,6 +130,8 @@ pub fn find_median(img: &Mat) -> u8 {
     return res as u8;
 }
 
+// We use the RGB to Gray mapping function
+// described in Greg's algorithm.
 fn mix_rgb_to_gray(b: u16, g: u16, r: u16) -> u8 {
     return ((19 * b + 183 * g + 54 * r) >> 8) as u8; 
 }

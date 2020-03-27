@@ -17,7 +17,7 @@ pub fn align(images: &VectorOfMat,
     log::trace!("Start MTB Alignment.");
     let pivot: usize = images.len() >> 1;
 
-    log::trace!("Align pivot is {}.", pivot);
+    log::info!("Align pivot is {}.", pivot);
 
     let mut pivot_image_pyramid_mtb: VectorOfMat = VectorOfMat::new();
     let mut pivot_image_pyramid_exor: VectorOfMat = VectorOfMat::new();
@@ -55,6 +55,8 @@ pub fn align(images: &VectorOfMat,
                     let cur_similarity: f64 = compute_image_similarity(&cur_mtb, &cur_exor, 
                                                     &pivot_image_pyramid_mtb.get((max_level-j-1).try_into().unwrap())?, 
                                                     &pivot_image_pyramid_exor.get((max_level-j-1).try_into().unwrap())?)?;
+                    // We tend not to move the image, so we use the moving distance as
+                    // a penalty as this stage.
                     let penalty = (move_x[k].abs() as f64) + (move_y[k].abs() as f64);
 
                     if best_similarity < 0.0 || best_similarity > cur_similarity + penalty {
@@ -67,7 +69,7 @@ pub fn align(images: &VectorOfMat,
                 offset_y += move_y[best_move];
             }
 
-            log::trace!("Image {} with offset {}, {}.", i, offset_x, offset_y);
+            log::info!("Image {} with offset {}, {}.", i, offset_x, offset_y);
 
             // Do the final translation
             let mut final_translation_image: Mat = Mat::default()?;
@@ -118,6 +120,8 @@ fn compute_image_similarity(a_mtb: &Mat,
     opencv::core::bitwise_and(&image_xor, b_exor, &mut image_and, &opencv::core::no_array()?)?;
     opencv::core::bitwise_and(&image_and, a_exor, &mut image_xor, &opencv::core::no_array()?)?;
     let sum: f64 = opencv::core::sum_elems(&image_xor).unwrap()[0];
+
+    log::info!("Computed image similarity: {}", sum);
 
     Ok(sum / 255.0)
 }
