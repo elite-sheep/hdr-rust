@@ -95,7 +95,7 @@ fn compute_image_pyramid(src: &Mat,
         for _i in 0..max_level {
             let mut mtb_image: Mat = Mat::default()?;
             let mut exclusive_image: Mat = Mat::default()?;
-            log::trace!("Resizing with scale {}.", scale);
+            log::info!("Resizing with scale {}.", scale);
             opencv_utils::compute_mtb_image(&src_clone, &mut mtb_image)?;
             opencv_utils::compute_exclusive_image(&src_clone, &mut exclusive_image, 4)?;
 

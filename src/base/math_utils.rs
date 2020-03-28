@@ -2,10 +2,17 @@
 
 use opencv::core::{Mat};
 use opencv::prelude::MatTrait;
+use rand::Rng;
 use std::error::Error;
 
 // This file contains some helper functions of math
 // It is designed and implemented following c coding style.
+
+pub fn gen_random_integer(min_val: i32,
+                          max_val: i32) -> i32 {
+    let mut rng = rand::thread_rng();
+    return rng.gen_range(min_val, max_val);
+}
 
 pub fn get_translation_matrix(dst: &mut Mat,
                               tx: i32,
