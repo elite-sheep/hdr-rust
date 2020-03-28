@@ -14,6 +14,17 @@ pub fn gen_random_integer(min_val: i32,
     return rng.gen_range(min_val, max_val);
 }
 
+pub fn hat(val: f32,
+           min_val: f32,
+           max_val: f32) -> f32 {
+    let mid_val = (min_val + max_val) / 2.0;
+    if val <= mid_val {
+        return val - min_val;
+    } else {
+        return max_val - val;
+    }
+}
+
 pub fn get_translation_matrix(dst: &mut Mat,
                               tx: i32,
                               ty: i32)
