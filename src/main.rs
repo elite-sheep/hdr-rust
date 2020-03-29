@@ -30,6 +30,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut out_aligned_images = VectorOfMat::new();
     mtb::align(&images, &mut out_aligned_images, 6)?;
 
+    images.clear();
+
     log::trace!("Starting solving CRF.");
     let mut out_hdri: Mat = Mat::default()?;
     let mut shutter_speeds: Vec<f32> = Vec::new();
@@ -38,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     shutter_speeds.push(2.5);
     shutter_speeds.push(15.0);
 
-    debevec_crf::solve(&out_aligned_images, &shutter_speeds, 2.0, &mut out_hdri);
+    debevec_crf::solve(&out_aligned_images, &shutter_speeds, 0.7, &mut out_hdri);
 
     log::trace!("Starting output images.");
     let options: VectorOfi32 = VectorOfi32::new();

@@ -1,6 +1,6 @@
 /* Copyright 2020 Yuchen Wong */
 
-use opencv::core::{CV_8UC1, Mat, Size_, Vec3b};
+use opencv::core::{CV_8UC1, Mat, MatExprTrait, Size_, Vec3b};
 use opencv::prelude::MatTrait;
 use std::error::Error;
 
@@ -102,6 +102,28 @@ pub fn warp_affine_with_default(src: &Mat,
                 opencv::imgproc::INTER_LINEAR, 
                 opencv::core::BORDER_CONSTANT,
                 opencv::core::Scalar_::default())?;
+    Ok(())
+}
+
+pub fn matmul(a: &Mat,
+              b: &Mat,
+              dtype: i32,
+              out_result: &mut Mat) -> Result<(), Box<dyn Error>> {
+    let rows = a.rows();
+    let cols = b.cols();
+
+    unsafe {
+        out_result.create_rows_cols(rows, cols, dtype)?;
+    }
+
+    log::info!("{} {}", rows, cols);
+    for i in 0..rows {
+        let cur_row: Mat = a.row(i).unwrap().t().unwrap().to_mat().unwrap();
+        for j in 0..cols {
+            *out_result.at_2d_mut::<f32>(i, j).unwrap() = (cur_row.dot(&b.col(j).unwrap())? as f32);
+        }
+    }
+
     Ok(())
 }
 

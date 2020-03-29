@@ -1,11 +1,13 @@
 /* Copyright 2020 Yuchen Wong*/
 
-use opencv::core::{Mat, Vec3b, Vec3f};
-use opencv::prelude::{MatExprTrait, MatTrait, Vector};
+use opencv::core::{Mat, MatExpr, MatExprTrait, Matx_MulOp, Vec3b, Vec3f};
+//use opencv::prelude::{MatTrait, Vector};
+use opencv::prelude::*;
 use opencv::types::VectorOfMat;
 use std::error::Error;
 
 #[path = "../base/math_utils.rs"] mod math_utils;
+#[path = "../base/opencv_utils.rs"] mod opencv_utils;
 
 pub fn solve(images: &VectorOfMat,
              shutter_speeds: &Vec<f32>,
@@ -30,7 +32,7 @@ pub fn solve(images: &VectorOfMat,
     }
 
     // generate samples randomly.
-    let sample_num = 2500;
+    let sample_num = 100;
     let mut samples_x: Vec<i32> = Vec::with_capacity(sample_num as usize);
     let mut samples_y: Vec<i32> = Vec::with_capacity(sample_num as usize);
     for _i in 0..sample_num {
@@ -65,9 +67,9 @@ fn solve_internal(images: &VectorOfMat,
 
     let total_sample_num = (sample_num as i32) * image_num;
     let mut A: Mat = Mat::zeros(
-        1+254+total_sample_num, 256+total_sample_num, opencv::core::CV_32FC1)?.to_mat()?;
+        1+254+total_sample_num, (256+sample_num) as i32, opencv::core::CV_32FC1)?.to_mat()?;
     let mut B: Mat = Mat::zeros(
-        256+total_sample_num, 1, opencv::core::CV_32FC1)?.to_mat()?;
+        (1+254+total_sample_num) as i32, 1, opencv::core::CV_32FC1)?.to_mat()?;
 
     let mut l = 0;
     for p in 0..image_num {
@@ -98,23 +100,25 @@ fn solve_internal(images: &VectorOfMat,
     opencv::core::invert(&A, &mut A_inv, opencv::core::DECOMP_SVD)?;
 
     log::trace!("Finishing solving SVD.");
+    log::trace!("{} {} {} {} {} {}", A_inv.rows(), A_inv.cols(), A.channels()?, B.rows(), B.cols(), B.channels()?);
 
     let mut X: Mat = Mat::default()?;
-    opencv::core::multiply(&A_inv, &B, &mut X, 1.0, -1)?;
+    opencv_utils::matmul(&A_inv, &B, opencv::core::CV_32FC1, &mut X)?;
 
     let mut g: [f32; 256] = [0.0; 256];
     for i in 0..256 {
         g[i as usize] = *X.at_2d::<f32>(i, 0).unwrap();
     }
 
+    log::trace!("Starting recovering for channel {}.", channel);
     for row in 0..rows {
         for col in 0..cols {
             let mut sum_weight: f32 = 0.0;
             let mut sum_radiance: f32 = 0.0;
             for p in 0..image_num {
-                let z: u8 = *images.get(p as usize)?.at_2d::<u8>(row, col)?;
-                sum_weight += weights[z as usize];
-                sum_radiance += weights[z as usize] * (g[z as usize] - shutter_speeds[p as usize].ln());
+                let z: Vec3b = *images.get(p as usize)?.at_2d::<Vec3b>(row, col).unwrap();
+                sum_weight += weights[z[channel as usize] as usize];
+                sum_radiance += weights[z[channel as usize] as usize] * (g[z[channel as usize] as usize] - shutter_speeds[p as usize].ln());
             }
             out_hdri.at_2d_mut::<Vec3f>(row, col).unwrap()[channel as usize] = (sum_radiance / sum_weight).exp();
         }
