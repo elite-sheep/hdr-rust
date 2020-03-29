@@ -1,13 +1,15 @@
 /* Copyright 2020 Yuchen Wong*/
 
-use opencv::core::{Mat, MatExpr, MatExprTrait, Matx_MulOp, Vec3b, Vec3f};
-//use opencv::prelude::{MatTrait, Vector};
+use opencv::core::{Mat, MatExprTrait, Vec3b, Vec3f};
 use opencv::prelude::*;
 use opencv::types::VectorOfMat;
 use std::error::Error;
 
 #[path = "../base/math_utils.rs"] mod math_utils;
 #[path = "../base/opencv_utils.rs"] mod opencv_utils;
+
+use math_utils::{hat};
+use opencv_utils::matmul;
 
 pub fn solve(images: &VectorOfMat,
              shutter_speeds: &Vec<f32>,
@@ -19,10 +21,9 @@ pub fn solve(images: &VectorOfMat,
     // generate weights with a hat function.
     let mut weights: [f32; 256] = [0.0; 256];
     for i in 0..256 {
-        weights[i] = math_utils::hat(i as f32, 0.0, 255.0);
+        weights[i] = hat(i as f32, 0.0, 255.0);
     }
 
-    let image_num = images.len();
     let rows: i32 = images.get(0)?.rows();
     let cols: i32 = images.get(0)?.cols();
 
@@ -66,9 +67,9 @@ fn solve_internal(images: &VectorOfMat,
     let image_num: i32 = images.len() as i32;
 
     let total_sample_num = (sample_num as i32) * image_num;
-    let mut A: Mat = Mat::zeros(
+    let mut a: Mat = Mat::zeros(
         1+254+total_sample_num, (256+sample_num) as i32, opencv::core::CV_32FC1)?.to_mat()?;
-    let mut B: Mat = Mat::zeros(
+    let mut b: Mat = Mat::zeros(
         (1+254+total_sample_num) as i32, 1, opencv::core::CV_32FC1)?.to_mat()?;
 
     let mut l = 0;
@@ -77,37 +78,36 @@ fn solve_internal(images: &VectorOfMat,
         for i in 0..sample_num {
             // log::trace!("{} {}", samples_y[i], samples_x[i]);
             let z: Vec3b = *cur_image.at_2d::<Vec3b>(samples_y[i], samples_x[i])?;
-            *A.at_2d_mut::<f32>(l, z[channel as usize] as i32).unwrap() = 1.0 * weights[z[channel as usize] as usize];
-            *A.at_2d_mut::<f32>(l, (256 + i) as i32).unwrap() = -1.0 * weights[z[channel as usize] as usize];
-            *B.at_2d_mut::<f32>(l, 0).unwrap() = shutter_speeds[p as usize].ln() * weights[z[channel as usize] as usize];
+            *a.at_2d_mut::<f32>(l, z[channel as usize] as i32).unwrap() = 1.0 * weights[z[channel as usize] as usize];
+            *a.at_2d_mut::<f32>(l, (256 + i) as i32).unwrap() = -1.0 * weights[z[channel as usize] as usize];
+            *b.at_2d_mut::<f32>(l, 0).unwrap() = shutter_speeds[p as usize].ln() * weights[z[channel as usize] as usize];
             l += 1;
         }
     }
 
-    *A.at_2d_mut::<f32>(l, 127).unwrap() = 1.0;
+    *a.at_2d_mut::<f32>(l, 127).unwrap() = 1.0;
     l += 1;
 
     for i in 1..255 {
-        *A.at_2d_mut::<f32>(l, i-1).unwrap() = lambda * weights[i as usize];
-        *A.at_2d_mut::<f32>(l, i).unwrap() = -2.0 * lambda * weights[i as usize];
-        *A.at_2d_mut::<f32>(l, i+1).unwrap() = lambda * weights[i as usize];
+        *a.at_2d_mut::<f32>(l, i-1).unwrap() = lambda * weights[i as usize];
+        *a.at_2d_mut::<f32>(l, i).unwrap() = -2.0 * lambda * weights[i as usize];
+        *a.at_2d_mut::<f32>(l, i+1).unwrap() = lambda * weights[i as usize];
         l += 1;
     }
 
     log::trace!("Finishing setting up solver.");
 
-    let mut A_inv: Mat = Mat::default()?;
-    opencv::core::invert(&A, &mut A_inv, opencv::core::DECOMP_SVD)?;
+    let mut a_inv: Mat = Mat::default()?;
+    opencv::core::invert(&a, &mut a_inv, opencv::core::DECOMP_SVD)?;
 
     log::trace!("Finishing solving SVD.");
-    log::trace!("{} {} {} {} {} {}", A_inv.rows(), A_inv.cols(), A.channels()?, B.rows(), B.cols(), B.channels()?);
 
-    let mut X: Mat = Mat::default()?;
-    opencv_utils::matmul(&A_inv, &B, opencv::core::CV_32FC1, &mut X)?;
+    let mut x: Mat = Mat::default()?;
+    matmul(&a_inv, &b, opencv::core::CV_32FC1, &mut x)?;
 
     let mut g: [f32; 256] = [0.0; 256];
     for i in 0..256 {
-        g[i as usize] = *X.at_2d::<f32>(i, 0).unwrap();
+        g[i as usize] = *x.at_2d::<f32>(i, 0).unwrap();
     }
 
     log::trace!("Starting recovering for channel {}.", channel);

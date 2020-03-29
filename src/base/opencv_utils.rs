@@ -7,6 +7,7 @@ use std::error::Error;
 // This file contains some helper function of opencv
 // It is designed and implemented following c coding style.
 
+#[allow(dead_code)]
 pub fn compute_exclusive_image(src: &Mat, 
                          dst: &mut Mat,
                          offset: u8) 
@@ -42,6 +43,7 @@ pub fn compute_exclusive_image(src: &Mat,
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn compute_mtb_image(src: &Mat, 
                          dst: &mut Mat) 
     -> Result<(), Box<dyn Error>> {
@@ -64,6 +66,7 @@ pub fn compute_mtb_image(src: &Mat,
     Ok(())
 }
 
+#[allow(dead_code)]
 fn cvt_rgb_image_to_grey(src: &Mat,
                          dst: &mut Mat) -> Result<(), Box<dyn Error>> {
     let rows = src.rows();
@@ -86,6 +89,7 @@ fn cvt_rgb_image_to_grey(src: &Mat,
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn resize_image_with_default(src: &Mat,
                                  dst: &mut Mat,
                                  fx: f64,
@@ -95,6 +99,7 @@ pub fn resize_image_with_default(src: &Mat,
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn warp_affine_with_default(src: &Mat,
                                 dst: &mut Mat,
                                 transform: &Mat) -> Result<(), Box<dyn Error>> {
@@ -105,6 +110,7 @@ pub fn warp_affine_with_default(src: &Mat,
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn matmul(a: &Mat,
               b: &Mat,
               dtype: i32,
@@ -120,13 +126,14 @@ pub fn matmul(a: &Mat,
     for i in 0..rows {
         let cur_row: Mat = a.row(i).unwrap().t().unwrap().to_mat().unwrap();
         for j in 0..cols {
-            *out_result.at_2d_mut::<f32>(i, j).unwrap() = (cur_row.dot(&b.col(j).unwrap())? as f32);
+            *out_result.at_2d_mut::<f32>(i, j).unwrap() = cur_row.dot(&b.col(j).unwrap()).unwrap() as f32;
         }
     }
 
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn find_median(img: &Mat) -> u8 {
     let mut pixel_hist: [i32; 256] = [0; 256];
 
@@ -154,6 +161,7 @@ pub fn find_median(img: &Mat) -> u8 {
 
 // We use the RGB to Gray mapping function
 // described in Greg's algorithm.
+#[allow(dead_code)]
 fn mix_rgb_to_gray(b: u16, g: u16, r: u16) -> u8 {
     return ((19 * b + 183 * g + 54 * r) >> 8) as u8; 
 }

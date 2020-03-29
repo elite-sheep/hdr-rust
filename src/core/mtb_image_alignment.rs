@@ -9,6 +9,9 @@ use std::error::Error;
 #[path = "../base/math_utils.rs"] mod math_utils;
 #[path = "../base/opencv_utils.rs"] mod opencv_utils;
 
+use math_utils::{get_translation_matrix};
+use opencv_utils::{compute_mtb_image, compute_exclusive_image, warp_affine_with_default, resize_image_with_default};
+
 pub fn align(images: &VectorOfMat,
              aligned_images: &mut VectorOfMat,
              max_level: u8) 
@@ -43,13 +46,13 @@ pub fn align(images: &VectorOfMat,
                 let mut best_similarity: f64 = -1.0;
                 for k in 0..9 {
                     let mut translation_matrix: Mat = Mat::default()?;
-                    math_utils::get_translation_matrix(&mut translation_matrix, offset_x + move_x[k], offset_y + move_y[k])?;
+                    get_translation_matrix(&mut translation_matrix, offset_x + move_x[k], offset_y + move_y[k])?;
 
                     let mut cur_mtb: Mat = Mat::default()?;
                     let mut cur_exor: Mat = Mat::default()?;
-                    opencv_utils::warp_affine_with_default(
+                    warp_affine_with_default(
                         &image_pyramid_mtb.get((max_level-j-1).try_into().unwrap())?, &mut cur_mtb, &translation_matrix)?;
-                    opencv_utils::warp_affine_with_default(
+                    warp_affine_with_default(
                         &image_pyramid_exor.get((max_level-j-1).try_into().unwrap())?, &mut cur_exor, &translation_matrix)?;
 
                     let cur_similarity: f64 = compute_image_similarity(&cur_mtb, &cur_exor, 
@@ -74,8 +77,8 @@ pub fn align(images: &VectorOfMat,
             // Do the final translation
             let mut final_translation_image: Mat = Mat::default()?;
             let mut translation_matrix: Mat = Mat::default()?;
-            math_utils::get_translation_matrix(&mut translation_matrix, offset_x, offset_y)?;
-            opencv_utils::warp_affine_with_default(
+            get_translation_matrix(&mut translation_matrix, offset_x, offset_y)?;
+            warp_affine_with_default(
                 &images.get(i)?, &mut final_translation_image, &translation_matrix)?;
             aligned_images.push(final_translation_image);
         }
@@ -96,14 +99,14 @@ fn compute_image_pyramid(src: &Mat,
             let mut mtb_image: Mat = Mat::default()?;
             let mut exclusive_image: Mat = Mat::default()?;
             log::info!("Resizing with scale {}.", scale);
-            opencv_utils::compute_mtb_image(&src_clone, &mut mtb_image)?;
-            opencv_utils::compute_exclusive_image(&src_clone, &mut exclusive_image, 4)?;
+            compute_mtb_image(&src_clone, &mut mtb_image)?;
+            compute_exclusive_image(&src_clone, &mut exclusive_image, 4)?;
 
             out_mtb_images.push(mtb_image);
             out_exclusive_images.push(exclusive_image);
 
             scale *= 0.5;
-            opencv_utils::resize_image_with_default(src, &mut src_clone, scale, scale)?;
+            resize_image_with_default(src, &mut src_clone, scale, scale)?;
         }
 
         Ok(())

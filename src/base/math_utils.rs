@@ -8,23 +8,26 @@ use std::error::Error;
 // This file contains some helper functions of math
 // It is designed and implemented following c coding style.
 
+#[allow(dead_code)]
 pub fn gen_random_integer(min_val: i32,
                           max_val: i32) -> i32 {
     let mut rng = rand::thread_rng();
     return rng.gen_range(min_val, max_val);
 }
 
+#[allow(dead_code)]
 pub fn hat(val: f32,
            min_val: f32,
            max_val: f32) -> f32 {
     let mid_val = (min_val + max_val) / 2.0;
     if val <= mid_val {
-        return val - min_val;
+        return (val - min_val) / (max_val - min_val);
     } else {
-        return max_val - val;
+        return (max_val - val) / (max_val - min_val);
     }
 }
 
+#[allow(dead_code)]
 pub fn get_translation_matrix(dst: &mut Mat,
                               tx: i32,
                               ty: i32)

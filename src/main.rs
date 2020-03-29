@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     log::trace!("Starting align images.");
     let mut out_aligned_images = VectorOfMat::new();
-    mtb::align(&images, &mut out_aligned_images, 6)?;
+    mtb::align(&images, &mut out_aligned_images, 6).unwrap();
 
     images.clear();
 
@@ -40,11 +40,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     shutter_speeds.push(2.5);
     shutter_speeds.push(15.0);
 
-    debevec_crf::solve(&out_aligned_images, &shutter_speeds, 0.7, &mut out_hdri);
+    debevec_crf::solve(&out_aligned_images, &shutter_speeds, 0.7, &mut out_hdri).unwrap();
 
     log::trace!("Starting output images.");
     let options: VectorOfi32 = VectorOfi32::new();
-    imwrite("/home/yucwang/Desktop/lotus_hdr.exr", &out_hdri, &options);
+    imwrite("/home/yucwang/Desktop/lotus_hdr.exr", &out_hdri, &options).unwrap();
 
     log::trace!("HDR-Rust ends.");
     Ok(())
