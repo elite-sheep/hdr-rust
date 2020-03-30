@@ -56,6 +56,7 @@ fn compute_radiance(src: &Mat,
     l_w_tmp.release()?;
 
     let l_w_hat: f32 = opencv::core::mean(&l_w_log, &opencv::core::no_array()?).unwrap()[0].exp() as f32;
+    log::trace!("{}", l_w_hat);
 
     let rows: i32 = src.rows();
     let cols: i32 = src.cols();
