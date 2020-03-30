@@ -21,9 +21,9 @@ pub fn hat(val: f32,
            max_val: f32) -> f32 {
     let mid_val = (min_val + max_val) / 2.0;
     if val <= mid_val {
-        return (val - min_val) / (max_val - min_val);
+        return val - min_val;
     } else {
-        return (max_val - val) / (max_val - min_val);
+        return max_val - val;
     }
 }
 

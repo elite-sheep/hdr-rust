@@ -33,7 +33,7 @@ pub fn solve(images: &VectorOfMat,
     }
 
     // generate samples randomly.
-    let sample_num = 100;
+    let sample_num = 300;
     let mut samples_x: Vec<i32> = Vec::with_capacity(sample_num as usize);
     let mut samples_y: Vec<i32> = Vec::with_capacity(sample_num as usize);
     for _i in 0..sample_num {
@@ -120,7 +120,7 @@ fn solve_internal(images: &VectorOfMat,
                 sum_weight += weights[z[channel as usize] as usize];
                 sum_radiance += weights[z[channel as usize] as usize] * (g[z[channel as usize] as usize] - shutter_speeds[p as usize].ln());
             }
-            out_hdri.at_2d_mut::<Vec3f>(row, col).unwrap()[channel as usize] = (sum_radiance / sum_weight).exp();
+            out_hdri.at_2d_mut::<Vec3f>(row, col).unwrap()[channel as usize] = (sum_radiance / (sum_weight+1.0)).exp();
         }
     }
 
