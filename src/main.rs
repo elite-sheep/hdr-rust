@@ -12,6 +12,7 @@ use std::error::Error;
 #[path = "./base/opencv_utils.rs"] mod opencv_utils;
 #[path = "./core/debevec_crf_solver.rs"] mod debevec_crf;
 #[path = "./core/mtb_image_alignment.rs"] mod mtb;
+#[path = "./core/photographic_global_tone_mapping.rs"] mod tone_mapping;
 
 fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
