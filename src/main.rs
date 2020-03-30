@@ -43,7 +43,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     debevec_crf::solve(&out_aligned_images, &shutter_speeds, 0.7, &mut out_hdri).unwrap();
 
     log::trace!("Starting output images.");
-    let options: VectorOfi32 = VectorOfi32::new();
+    let mut options: VectorOfi32 = VectorOfi32::new();
+    options.push(opencv::imgcodecs::IMWRITE_EXR_TYPE_FLOAT);
     imwrite("/home/yucwang/Desktop/lotus_hdr.exr", &out_hdri, &options).unwrap();
 
     log::trace!("HDR-Rust ends.");
