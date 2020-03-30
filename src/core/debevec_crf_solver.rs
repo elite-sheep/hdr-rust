@@ -120,7 +120,7 @@ fn solve_internal(images: &VectorOfMat,
                 sum_weight += weights[z[channel as usize] as usize];
                 sum_radiance += weights[z[channel as usize] as usize] * (g[z[channel as usize] as usize] - shutter_speeds[p as usize].ln());
             }
-            out_hdri.at_2d_mut::<Vec3f>(row, col).unwrap()[channel as usize] = (sum_radiance / (sum_weight+0.1)).exp();
+            out_hdri.at_2d_mut::<Vec3f>(row, col).unwrap()[channel as usize] = (sum_radiance / (sum_weight+0.5)).exp();
         }
     }
 
