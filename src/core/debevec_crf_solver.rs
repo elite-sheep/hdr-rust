@@ -65,7 +65,7 @@ fn solve_internal(images: &VectorOfMat,
 
     let mut samples_x: Vec<i32> = Vec::default();
     let mut samples_y: Vec<i32> = Vec::default();
-    histogram_sampling(images, channel, sample_number, 8, &mut samples_x, &mut samples_y)?;
+    histogram_sampling(images, channel, sample_number, &mut samples_x, &mut samples_y)?;
 
     let rows = images.get(0)?.rows();
     let cols = images.get(0)?.cols();
@@ -137,9 +137,9 @@ fn solve_internal(images: &VectorOfMat,
 fn histogram_sampling(images: &VectorOfMat,
                       channel: usize,
                       sample_num: i32,
-                      bin_num: i32,
                       out_sample_x: &mut Vec<i32>,
                       out_sample_y: &mut Vec<i32>) -> Result<(), Box<dyn Error>> {
+    let bin_num = 8;
     let image_num: usize = images.len();
     let rows = images.get(0)?.rows();
     let cols = images.get(0)?.cols();
@@ -164,10 +164,13 @@ fn histogram_sampling(images: &VectorOfMat,
         }
     }
 
-    let samples_per_bin: i32 = sample_num / bin_num;
+    let weights: [i32; 8] = [1, 2, 2, 3, 3, 2, 2, 1];
+
+    let samples_per_bin: i32 = sample_num / 16;
     for i in 0..bin_num {
         let cur_bin_size = bin_x[i as usize].len() as i32;
-        for _j in 0..samples_per_bin {
+        let cur_samples = weights[i as usize] * samples_per_bin;
+        for _j in 0..cur_samples {
             let cur_index = math_utils::gen_random_integer(0, cur_bin_size);
             out_sample_x.push(bin_x[i as usize][cur_index as usize]);
             out_sample_y.push(bin_y[i as usize][cur_index as usize]);
