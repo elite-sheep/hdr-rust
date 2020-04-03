@@ -1,7 +1,9 @@
 /* Copyright 2020 Yuchen Wong */
 
 use opencv::core::{CV_8UC1, Mat, MatExprTrait, Size_, Vec3b};
-use opencv::prelude::MatTrait;
+use opencv::imgcodecs::{imwrite};
+use opencv::prelude::{MatTrait, Vector};
+use opencv::types::{VectorOfi32};
 use std::error::Error;
 
 // This file contains some helper function of opencv
@@ -157,6 +159,17 @@ pub fn find_median(img: &Mat) -> u8 {
     }
 
     return res as u8;
+}
+
+// Save .exr file to a given path
+#[allow(dead_code)]
+pub fn save_exr_with_default(path: &String,
+                             image: &Mat) -> Result<(), Box<dyn Error>> {
+    let mut options: VectorOfi32 = VectorOfi32::new();
+    options.push(opencv::imgcodecs::IMWRITE_EXR_TYPE_FLOAT);
+    imwrite(path, &image, &options)?;
+
+    Ok(())
 }
 
 // We use the RGB to Gray mapping function

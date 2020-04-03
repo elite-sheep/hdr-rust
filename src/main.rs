@@ -2,13 +2,14 @@ extern crate pretty_env_logger;
 extern crate log;
 
 use opencv::core::Mat;
-use opencv::imgcodecs::{imread, imwrite};
+use opencv::imgcodecs::{imread};
 use opencv::prelude::Vector;
-use opencv::types::{VectorOfi32, VectorOfMat};
+use opencv::types::{VectorOfMat};
 
 use std::error::Error;
 
 #[path = "./base/math_utils.rs"] mod math_utils;
+#[path = "./base/opencv_utils.rs"] mod opencv_utils;
 #[path = "./core/debevec_crf_solver.rs"] mod debevec_crf;
 #[path = "./core/mtb_image_alignment.rs"] mod mtb;
 
@@ -43,9 +44,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     debevec_crf::solve(&out_aligned_images, &shutter_speeds, 512, 0.7, &mut out_hdri).unwrap();
 
     log::trace!("Starting output images.");
-    let mut options: VectorOfi32 = VectorOfi32::new();
-    options.push(opencv::imgcodecs::IMWRITE_EXR_TYPE_FLOAT);
-    imwrite("/home/yucwang/Desktop/i_love_hefei_hdr.exr", &out_hdri, &options).unwrap();
+    opencv_utils::save_exr_with_default(&std::string::String::from("/home/yucwang/Desktop/i_love_hefei_hdr.exr"), &out_hdri)?;
 
     log::trace!("HDR-Rust ends.");
     Ok(())
