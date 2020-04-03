@@ -49,7 +49,7 @@ pub fn solve(images: &VectorOfMat,
     }
 
     let duration = start.elapsed()?.as_secs();
-    log::trace!("Debevec crf_solver ended: {}.", duration);
+    log::trace!("Debevec crf_solver ended: {} secs.", duration);
     Ok(())
 }
 
@@ -130,7 +130,7 @@ fn solve_internal(images: &VectorOfMat,
         }
     }
 
-    log::trace!("Finishing solving Debevec CRF for channel {}s.", channel);
+    log::trace!("Finishing solving Debevec CRF for channel {}.", channel);
     Ok(())
 }
 
