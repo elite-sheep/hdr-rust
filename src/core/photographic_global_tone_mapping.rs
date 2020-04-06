@@ -1,7 +1,7 @@
 /* Copyright 2020 Yuchen Wong */
 
 use opencv::core::{Mat, Scalar_, Vec3f};
-use opencv::prelude::{MatTrait, MatExprTrait, Vector};
+use opencv::prelude::{MatTrait, Vector};
 use opencv::types::{VectorOfMat};
 use std::error::Error;
 
@@ -23,7 +23,6 @@ pub fn map(src: &Mat,
     opencv::core::split(&tmp_ldr, &mut tmp_ldr_array).unwrap();
     for i in 0..3 {
         let cur_mat: Mat = tmp_ldr_array.get(i).unwrap();
-        log::info!("{} {} {} {} {} {}", cur_mat.rows(), cur_mat.cols(), cur_mat.channels().unwrap(), radiance_map.rows(), radiance_map.cols(), radiance_map.channels().unwrap());
         let mut tmp_mat: Mat = Mat::default()?;
         let mut out_mat: Mat = Mat::default()?;
         opencv::core::divide2(&cur_mat, &l_w, &mut tmp_mat, 1.0, opencv::core::CV_32FC1).unwrap();
@@ -50,7 +49,7 @@ fn compute_radiance(src: &Mat,
 
     let mut l_w_log = Mat::default()?;
     let mut l_w_tmp: Mat = Mat::default()?;
-    opencv::core::add(out_l_w, &Scalar_::all(0.0001), 
+    opencv::core::add(out_l_w, &Scalar_::all(math_utils::EPSILON), 
                       &mut l_w_tmp, &opencv::core::no_array()?, opencv::core::CV_32FC1).unwrap();
     opencv::core::log(&l_w_tmp, &mut l_w_log).unwrap();
     l_w_tmp.release()?;

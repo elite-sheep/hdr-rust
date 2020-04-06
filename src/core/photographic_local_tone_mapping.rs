@@ -1,7 +1,7 @@
 /* Copyright 2020 Yuchen Wong */
 
 use opencv::core::{Mat, Scalar_, Size_, Vec3f};
-use opencv::prelude::{MatTrait, MatExprTrait, Vector};
+use opencv::prelude::{MatTrait, Vector};
 use opencv::types::{VectorOfMat};
 use std::error::Error;
 
@@ -113,14 +113,6 @@ fn compute_radiance(src: &Mat,
     }
 
     opencv::core::divide2(&l_m, &l_d_down, out_radiance_map, 1.0, opencv::core::CV_32FC1)?;
-
-    for i in 0..rows {
-        let mut test: f64 = 0.0;
-        for j in 0..cols {
-            test += *l_d_down.at_2d::<f32>(i, j).unwrap() as f64;
-        }
-        log::info!("{}", test);
-    }
 
     Ok(())
 }
