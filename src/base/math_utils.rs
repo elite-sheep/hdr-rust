@@ -8,6 +8,8 @@ use std::error::Error;
 // This file contains some helper functions of math
 // It is designed and implemented following c coding style.
 
+pub const EPSILON: f64 = 1e-4;
+
 #[allow(dead_code)]
 pub fn gen_random_integer(min_val: i32,
                           max_val: i32) -> i32 {
