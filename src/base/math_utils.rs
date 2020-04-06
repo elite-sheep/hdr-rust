@@ -29,7 +29,6 @@ pub fn hat(val: f32,
     }
 }
 
-
 #[allow(dead_code)]
 pub fn get_translation_matrix(dst: &mut Mat,
                               tx: i32,
