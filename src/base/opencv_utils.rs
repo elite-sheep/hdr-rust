@@ -128,7 +128,8 @@ pub fn matmul(a: &Mat,
     for i in 0..rows {
         let cur_row: Mat = a.row(i).unwrap().t().unwrap().to_mat().unwrap();
         for j in 0..cols {
-            *out_result.at_2d_mut::<f32>(i, j).unwrap() = cur_row.dot(&b.col(j).unwrap()).unwrap() as f32;
+            *out_result.at_2d_mut::<f32>(i, j).unwrap() = 
+                cur_row.dot(&b.col(j).unwrap()).unwrap() as f32;
         }
     }
 

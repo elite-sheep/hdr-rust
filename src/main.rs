@@ -20,9 +20,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
     log::trace!("HDR-Rust Starts.");
 
-    let image: Mat = imread("/home/yucwang/Pictures/test_pictures/hdr_test_cases/1440px-StLouisArchMultExpEV+1.51.jpeg", 1)?;
+    let image: Mat = imread("/home/yucwang/Pictures/parrington/prtn01.jpg", 1)?;
     let mut dst: Mat = Mat::default()?;
-    harris_corner_detector::harris_detect_corner(&image, &mut dst, 2, 3, 0.04, 4, 140).unwrap();
+    harris_corner_detector::harris_detect_corner(&image, &mut dst, 5, 0.04, 64.0).unwrap();
 
     let mut options: VectorOfi32 = VectorOfi32::new();
     imwrite("/home/yucwang/Desktop/harris_out.jpg", &dst, &options);
