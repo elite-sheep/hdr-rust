@@ -7,7 +7,7 @@ use std::error::Error;
 
 #[path = "../base/opencv_utils.rs"] mod opencv_utils;
 
-use opencv_utils::{ cvt_rgb_image_to_grey };
+use opencv_utils::{ cvt_rgb_image_to_grey, get_pixel, set_pixel };
 
 pub fn harris_detect_corner(src: &Mat,
                             dst: &mut Mat,
@@ -37,12 +37,12 @@ pub fn harris_detect_corner(src: &Mat,
 
     for i in 0..rows {
         for j in 0..cols {
-            let pixel = *harris_response_normal_scaled.at_2d::<u8>(i, j).unwrap();
+            let pixel = get_pixel::<u8>(&harris_response_normal_scaled, i, j);
             if pixel > threshold {
                 log::trace!("{} {}", i, j);
-                *dst.at_2d_mut::<Vec3b>(i, j).unwrap() = Vec3b::from([255, 0, 0]);
+                set_pixel::<Vec3b>(dst, i, j, Vec3b::from([0, 255, 0]));
             } else {
-                *dst.at_2d_mut::<Vec3b>(i, j).unwrap() = *src.at_2d::<Vec3b>(i, j).unwrap();
+                set_pixel::<Vec3b>(dst, i, j, get_pixel::<Vec3b>(src, i, j));
             }
         }
     }

@@ -178,3 +178,11 @@ pub fn save_exr_with_default(path: &String,
 fn mix_rgb_to_gray(b: u16, g: u16, r: u16) -> u8 {
     return ((19 * b + 183 * g + 54 * r) >> 8) as u8; 
 }
+
+pub fn get_pixel<T: opencv::core::DataType>(image: &Mat, x: i32, y: i32) -> T {
+    return *image.at_2d::<T>(x, y).unwrap();
+}
+
+pub fn set_pixel<T: opencv::core::DataType>(image: &mut Mat, x: i32, y: i32, value: T) {
+    *image.at_2d_mut::<T>(x, y).unwrap() = value;
+}
