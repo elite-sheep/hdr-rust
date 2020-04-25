@@ -69,7 +69,7 @@ pub fn compute_mtb_image(src: &Mat,
 }
 
 #[allow(dead_code)]
-fn cvt_rgb_image_to_grey(src: &Mat,
+pub fn cvt_rgb_image_to_grey(src: &Mat,
                          dst: &mut Mat) -> Result<(), Box<dyn Error>> {
     let rows = src.rows();
     let cols = src.cols();
