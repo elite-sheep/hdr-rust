@@ -10,6 +10,7 @@ use std::error::Error;
 
 #[path = "./base/math_utils.rs"] mod math_utils;
 #[path = "./base/opencv_utils.rs"] mod opencv_utils;
+#[path = "./core/cylindrical_image_wrapper.rs"] mod cy_wrap;
 #[path = "./core/debevec_crf_solver.rs"] mod debevec_crf;
 #[path = "./core/harris_corner_detector.rs"] mod harris_corner_detector;
 #[path = "./core/mtb_image_alignment.rs"] mod mtb;
@@ -22,7 +23,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let image: Mat = imread("/home/yucwang/Pictures/parrington/prtn00.jpg", 1)?;
     let mut dst: Mat = Mat::default()?;
-    harris_corner_detector::harris_detect_corner(&image, 3, 0.05, 108.0).unwrap();
+    cy_wrap::cylindrial_wrap(&image, 704.9, &mut dst).unwrap();
+    imwrite("/home/yucwang/Desktop/cy.jpg", &dst, &VectorOfi32::new()).unwrap();
+    //harris_corner_detector::harris_detect_corner(&image, 3, 0.05, 108.0).unwrap();
 
 //    let mut images: VectorOfMat = VectorOfMat::new();
 //    let image1: Mat = imread("/home/yucwang/I_love_hefei_50/IMG_20200402_183757.jpg", 1)?;
