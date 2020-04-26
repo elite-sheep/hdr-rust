@@ -18,7 +18,7 @@ pub fn cylindrial_wrap(src: &Mat,
     let cols = src.cols();
 
     let f = focal_length;
-    let invS = 1.0 / f;
+    let inv_s = 1.0 / f;
 
     // make center of image o as origin
     let origin_x = rows >> 1;
@@ -26,7 +26,7 @@ pub fn cylindrial_wrap(src: &Mat,
 
     let origin_x_max = (rows - 1 - origin_x) as f32;
 
-    let cy_x_max = focal_length * (origin_x_max / focal_length).atan();
+    let cy_x_max = f * (origin_x_max / f).atan();
     // Cut black edges of out wrapped image.
     let offset = origin_x_max - cy_x_max;
 
@@ -40,8 +40,8 @@ pub fn cylindrial_wrap(src: &Mat,
             let cy_x: f32 = (i - origin_x) as f32 + offset;
             let cy_y: f32 = (j - origin_y) as f32;
 
-            let mut x: f32 = (cy_x * invS).tan() * f;
-            let mut y: f32 = cy_y * (x*x + f*f).sqrt() * invS;
+            let mut x: f32 = (cy_x * inv_s).tan() * f;
+            let mut y: f32 = cy_y * (x*x + f*f).sqrt() * inv_s;
 
             x += origin_x as f32;
             y += origin_y as f32;
