@@ -69,7 +69,7 @@ pub fn compute_mtb_image(src: &Mat,
 }
 
 #[allow(dead_code)]
-fn cvt_rgb_image_to_grey(src: &Mat,
+pub fn cvt_rgb_image_to_grey(src: &Mat,
                          dst: &mut Mat) -> Result<(), Box<dyn Error>> {
     let rows = src.rows();
     let cols = src.cols();
@@ -128,7 +128,8 @@ pub fn matmul(a: &Mat,
     for i in 0..rows {
         let cur_row: Mat = a.row(i).unwrap().t().unwrap().to_mat().unwrap();
         for j in 0..cols {
-            *out_result.at_2d_mut::<f32>(i, j).unwrap() = cur_row.dot(&b.col(j).unwrap()).unwrap() as f32;
+            *out_result.at_2d_mut::<f32>(i, j).unwrap() = 
+                cur_row.dot(&b.col(j).unwrap()).unwrap() as f32;
         }
     }
 
@@ -177,4 +178,12 @@ pub fn save_exr_with_default(path: &String,
 #[allow(dead_code)]
 fn mix_rgb_to_gray(b: u16, g: u16, r: u16) -> u8 {
     return ((19 * b + 183 * g + 54 * r) >> 8) as u8; 
+}
+
+pub fn get_pixel<T: opencv::core::DataType>(image: &Mat, x: i32, y: i32) -> T {
+    return *image.at_2d::<T>(x, y).unwrap();
+}
+
+pub fn set_pixel<T: opencv::core::DataType>(image: &mut Mat, x: i32, y: i32, value: T) {
+    *image.at_2d_mut::<T>(x, y).unwrap() = value;
 }
