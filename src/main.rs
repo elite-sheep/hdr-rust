@@ -1,7 +1,7 @@
 extern crate pretty_env_logger;
 extern crate log;
 
-use opencv::core::Mat;
+use opencv::core::{Mat, Point, Scalar};
 use opencv::imgcodecs::{imread, imwrite};
 use opencv::prelude::Vector;
 use opencv::types::{VectorOfMat, VectorOfi32};
@@ -10,6 +10,7 @@ use std::error::Error;
 
 #[path = "./base/math_utils.rs"] mod math_utils;
 #[path = "./base/opencv_utils.rs"] mod opencv_utils;
+#[path = "./core/cylindrical_image_wrapper.rs"] mod cy_wrap;
 #[path = "./core/debevec_crf_solver.rs"] mod debevec_crf;
 #[path = "./core/harris_corner_detector.rs"] mod harris_corner_detector;
 #[path = "./core/mtb_image_alignment.rs"] mod mtb;
@@ -20,9 +21,19 @@ fn main() -> Result<(), Box<dyn Error>> {
     pretty_env_logger::init();
     log::trace!("HDR-Rust Starts.");
 
-    let image: Mat = imread("/home/yucwang/Pictures/parrington/prtn00.jpg", 1)?;
+    let image: Mat = imread("/home/yucwang/Pictures/parrington/prtn01.jpg", 1)?;
     let mut dst: Mat = Mat::default()?;
-    harris_corner_detector::harris_detect_corner(&image, 3, 0.05, 108.0).unwrap();
+    cy_wrap::cylindrial_wrap(&image, 706.2, &mut dst).unwrap();
+    let out_features = harris_corner_detector::harris_detect_corner(&dst, 3, 0.04, 64.0).unwrap();
+
+    for i in 0..out_features.len() {
+        opencv::imgproc::circle(&mut dst, Point::new(out_features[i].to_vec2()[1], out_features[i].to_vec2()[0]), 
+                                5, Scalar::new(0.0, 255.0, 0.0, 1.0), 1, 8, 0).unwrap();
+    }
+
+    imwrite("/home/yucwang/Desktop/cy.jpg", &dst, &VectorOfi32::new()).unwrap();
+    imwrite("/home/yucwang/Desktop/harris_out.jpg", &dst, &VectorOfi32::new()).unwrap();
+    //harris_corner_detector::harris_detect_corner(&image, 3, 0.05, 108.0).unwrap();
 
 //    let mut images: VectorOfMat = VectorOfMat::new();
 //    let image1: Mat = imread("/home/yucwang/I_love_hefei_50/IMG_20200402_183757.jpg", 1)?;
