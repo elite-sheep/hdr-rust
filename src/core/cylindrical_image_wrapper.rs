@@ -27,6 +27,8 @@ pub fn cylindrial_wrap(src: &Mat,
     let origin_x_max = (rows - 1 - origin_x) as f32;
 
     let cy_x_max = focal_length * (origin_x_max / focal_length).atan();
+    // Cut black edges of out wrapped image.
+    let offset = origin_x_max - cy_x_max;
 
     let mut tmp_wrapped: Mat = Mat::default()?;
     unsafe {
@@ -35,7 +37,7 @@ pub fn cylindrial_wrap(src: &Mat,
 
     for i in 0..tmp_wrapped.rows() {
         for j in 0..tmp_wrapped.cols() {
-            let cy_x: f32 = (i - origin_x) as f32;
+            let cy_x: f32 = (i - origin_x) as f32 + offset;
             let cy_y: f32 = (j - origin_y) as f32;
 
             let mut x: f32 = (cy_x * invS).tan() * f;
