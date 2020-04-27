@@ -48,6 +48,13 @@ pub fn sift_feature_description(src: &Mat,
         orientation_bins[i] = Mat::zeros(rows, cols, CV_32FC1).unwrap().to_mat().unwrap();
     }
 
+    let local_orientation_bins: [Mat, 8];
+    let local_bin_size: f32 = 45.0;
+    for i in 0..8 {
+        local_orientation_bins[i] = Mat::zeros(rows, cols, CV_32FC1)
+            .unwrap().to_mat().unwrap();
+    }
+
     for i in 0..rows {
         for j in 0..cols {
             let ixx = get_pixel::<f32>(&ix, i, j);
@@ -59,7 +66,13 @@ pub fn sift_feature_description(src: &Mat,
             }
             let raw_bin = ((theta + 0.5 * bin_size) / bin_size) % 36;
             let bin = raw_bin as i32;
-            set_pixel(&mut orientation_bins[bin], i, j, get_pixel(orientation, i, j));
+            set_pixel::<f32>(&mut orientation_bins[bin], i, j, 
+                      get_pixel::<f32>(orientation, i, j));
+
+            let local_raw_bin = ((theta + 0.5 * local_bin_size) / local_bin_size) % 8;
+            let local_bin = local_raw_bin as i32;
+            set_pixel::<f32>(&mut local_orientation_bins[local_bin], i, j, 
+                             get_pixel::<f32>(&orientation, i, j));
         }
     }
 
