@@ -1,7 +1,7 @@
 // Copyright 2020 Yuchen Wong
 
-use opencv::core::{ CV_8UC1, CV_8UC3, CV_32FC1, CV_32FC3, Mat, MatExpr, 
-                    Point, Point2f, Vec3f, MatTrait, Size, BORDER_DEFAULT};
+use opencv::core::{ CV_8UC1, CV_32FC1, 
+    Mat, Point, Point2f, MatTrait, Size, BORDER_DEFAULT};
 use opencv::prelude::{ MatExprTrait };
 use opencv::imgproc::{ gaussian_blur, spatial_gradient, COLOR_BGR2GRAY};
 use std::error::Error;
@@ -16,6 +16,8 @@ use opencv_utils::{ get_pixel, set_pixel };
 pub fn sift_feature_description(src: &Mat,
                                 feature_points: &Vec<Point>,
                                 feature_mat: &mut Mat) -> Result<(), Box<dyn Error>> {
+    log::trace!("Starting sift feature descriptor.");
+
     let mut gray_image = Mat::default()?;
     opencv::imgproc::cvt_color(src, &mut gray_image, COLOR_BGR2GRAY, 0).unwrap();
 
@@ -122,8 +124,8 @@ pub fn sift_feature_description(src: &Mat,
         feature_mat.create_rows_cols(feature_num as i32, 128, CV_32FC1).unwrap();
     }
     for i in 0..feature_num {
-        let x = feature_points[i].to_vec2()[0];
-        let y = feature_points[i].to_vec2()[1];
+        let x = feature_points[i].x;
+        let y = feature_points[i].y;
         let angle: f32 = (get_pixel::<u8>(&main_orientation, y, x) as f32) * bin_size;
 
         let descriptor_rotate_bin: i32;
