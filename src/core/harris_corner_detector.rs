@@ -14,7 +14,8 @@ use opencv_utils::{ get_pixel };
 pub fn harris_detect_corner(src: &Mat,
                             block_size: i32,
                             k: f64,
-                            threshold: f32) -> Result<Vec<Point>, Box<dyn Error>> {
+                            threshold: f32,
+                            cut_edge: bool) -> Result<Vec<Point>, Box<dyn Error>> {
     let mut buffer: Mat = Mat::default()?;
     let mut gray_image: Mat = Mat::default()?;
     opencv::imgproc::cvt_color(src, &mut gray_image, COLOR_BGR2GRAY, 0).unwrap();
@@ -29,9 +30,6 @@ pub fn harris_detect_corner(src: &Mat,
     buffer_x.convert_to(&mut ix, CV_32FC1, 1.0, 0.0).unwrap();
     buffer_y.convert_to(&mut iy, CV_32FC1, 1.0, 0.0).unwrap();
     
-    // sobel(&gray_image, &mut ix, 1, 1, 0, block_size, 1.0, 0.0, BORDER_DEFAULT).unwrap();
-    // sobel(&gray_image, &mut iy, 1, 0, 1, block_size, 1.0, 0.0, BORDER_DEFAULT).unwrap();
-
     // Step2: Compute Ix^2 Iy^2 IxIy
     let mut ix2: Mat = Mat::default()?;
     opencv::core::multiply(&ix, &ix, &mut ix2, 1.0, -1).unwrap();
@@ -72,13 +70,16 @@ pub fn harris_detect_corner(src: &Mat,
     let rows = src.rows();
     let cols = src.cols();
 
-    let circle_color: Scalar = Scalar::new(0.0, 255.0, 0.0, 1.0);
     let mx = [-1, -1, -1, 0, 0, 1, 1, 1];
     let my = [-1, 0, 1, 1, -1, 0, 1, -1];
     let mut feature_num: i32 = 0;
     let mut out_feature: Vec<Point> = Vec::new();
-    for i in 0..rows {
-        for j in 0..cols {
+    let mut thresh: i32 = 0;
+    if cut_edge == true {
+        thresh = 8;
+    }
+    for i in thresh..rows-thresh {
+        for j in thresh..cols-thresh {
             let pixel = get_pixel::<f32>(&R, i, j);
             if pixel > threshold {
                 let mut is_local_maximum = true;
@@ -94,7 +95,7 @@ pub fn harris_detect_corner(src: &Mat,
                 }
                 if is_local_maximum == true {
                     feature_num += 1;
-                    out_feature.push(Point::new(i, j));
+                    out_feature.push(Point::new(j, i));
                 }
             }
         }
