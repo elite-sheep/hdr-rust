@@ -5,12 +5,12 @@ use opencv::core::{ CV_8UC1, CV_32FC1,
 use opencv::prelude::{ MatExprTrait };
 use opencv::imgproc::{ gaussian_blur, spatial_gradient, COLOR_BGR2GRAY};
 use std::error::Error;
+use std::f32::consts::{PI};
 use std::vec::Vec;
 
 #[path = "../base/math_utils.rs"] mod math_utils;
 #[path = "../base/opencv_utils.rs"] mod opencv_utils;
 
-use math_utils::{PI};
 use opencv_utils::{ get_pixel, set_pixel };
 
 pub fn sift_feature_description(src: &Mat,

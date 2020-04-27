@@ -9,7 +9,6 @@ use std::error::Error;
 // It is designed and implemented following c coding style.
 
 pub const EPSILON: f64 = 1e-4;
-pub const PI: f32 = 3.14159265358;
 
 #[allow(dead_code)]
 pub fn gen_random_integer(min_val: i32,
