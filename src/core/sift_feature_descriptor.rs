@@ -83,12 +83,12 @@ pub fn sift_feature_description(src: &Mat,
     for i in 0..36 {
         orientation_bins[i].copy_to(&mut buffer).unwrap();
         gaussian_blur(&buffer, &mut orientation_bins[i], 
-                      Size::new(9, 9), 3.0, 0.0, BORDER_DEFAULT).unwrap();
+                      Size::new(7, 7), 3.0, 0.0, BORDER_DEFAULT).unwrap();
     }
     for i in 0..8 {
         local_orientation_bins[i].copy_to(&mut buffer).unwrap();
         gaussian_blur(&buffer, &mut local_orientation_bins[i],
-                      Size::new(9, 9), 3.0, 0.0, BORDER_DEFAULT).unwrap();
+                      Size::new(7, 7), 3.0, 0.0, BORDER_DEFAULT).unwrap();
     }
 
     let mut main_orientation = Mat::zeros(rows, cols, CV_8UC1).unwrap().to_mat().unwrap();
@@ -126,7 +126,7 @@ pub fn sift_feature_description(src: &Mat,
     for i in 0..feature_num {
         let x = feature_points[i].x;
         let y = feature_points[i].y;
-        let angle: f32 = (get_pixel::<u8>(&main_orientation, y, x) as f32) * bin_size;
+        let angle: f32 = (get_pixel::<u8>(&main_orientation, y, x) as f32 + 0.5) * bin_size;
 
         let descriptor_rotate_bin: i32;
         if angle < 45.0 / 2.0 {
@@ -144,6 +144,7 @@ pub fn sift_feature_description(src: &Mat,
 
         let mut out_descriptors: Vec<f32> = Vec::new();
         out_descriptors.reserve(128);
+
         // Construct a histogram in each of 4x4 grid.
         let st_x = [-8, -4, 0, 4];
         let st_y = [-8, -4, 0, 4];
