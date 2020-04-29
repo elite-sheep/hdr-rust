@@ -29,12 +29,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let image2: Mat = imread("/Users/apple/Pictures/parrington/prtn01.jpg", 1)?;
     let image3: Mat = imread("/Users/apple/Pictures/parrington/prtn00.jpg", 1)?;
     let mut dst1: Mat = Mat::default()?;
-    cy_wrap::cylindrial_wrap(&image1, 705.849, &mut dst1).unwrap();
+    cy_wrap::cylindrial_wrap(&image1, 704.916, &mut dst1).unwrap();
     let mut dst2 = Mat::default()?;
     cy_wrap::cylindrial_wrap(&image2, 706.286, &mut dst2).unwrap();
     let mut dst3 = Mat::default()?;
-    cy_wrap::cylindrial_wrap(&image3, 704.916, &mut dst3).unwrap();
-    let out_features1 = harris_corner_detector::harris_detect_corner(&dst1, 3, 0.04, 64.0, true).unwrap();
+    cy_wrap::cylindrial_wrap(&image3, 704.516, &mut dst3).unwrap();
+    let out_features1 = harris_corner_detector::harris_detect_corner(&dst1, 3, 0.04, 72.0, true).unwrap();
     let out_features2 = harris_corner_detector::harris_detect_corner(&dst2, 3, 0.04, 64.0, true).unwrap();
     let out_features3 = harris_corner_detector::harris_detect_corner(&dst3, 3, 0.04, 64.0, true).unwrap();
 
@@ -44,11 +44,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     sift::sift_feature_description(&dst2, &out_features2, &mut features2).unwrap();
     let mut features3: Mat = Mat::default()?;
     sift::sift_feature_description(&dst3, &out_features3, &mut features3).unwrap();
-    let feature_match1 = default_feature_matcher::match_feature(&features1, &features2, 0.7).unwrap();
+    let feature_match1 = default_feature_matcher::match_feature(&features1, &features2, 0.6).unwrap();
     let feature_match2 = default_feature_matcher::match_feature(&features2, &features3, 0.7).unwrap();
 
-    let m1 = image_matcher::match_image(&dst1, &dst2, &out_features1, &out_features2, &feature_match1).unwrap();
-    let m2 = image_matcher::match_image(&dst2, &dst3, &out_features2, &out_features3, &feature_match2).unwrap();
+    let m1 = image_matcher::match_image(&mut dst1, &mut dst2, &out_features1, &out_features2, &feature_match1).unwrap();
+    let m2 = image_matcher::match_image(&mut dst2, &mut dst3, &out_features2, &out_features3, &feature_match2).unwrap();
 
     let mut images: Vec<Mat> = Vec::new();
     images.push(dst1);
@@ -61,16 +61,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut panorama = Mat::default()?;
     image_blender::blend_image(&images, &alignments, &mut panorama).unwrap();
 
-//    opencv::imgproc::circle(&mut dst1, out_features1[m.x as usize], 5, Scalar::new(0.0, 255.0, 0.0, 1.0),
-//                                1, 8, 0).unwrap();
-//    opencv::imgproc::circle(&mut dst2, out_features2[m.y as usize], 5, Scalar::new(0.0, 255.0, 0.0, 1.0),
-//                                1, 8, 0).unwrap();
     log::trace!("Sift feature extraction finished.");
 
      imwrite("/Users/apple/Desktop/panorma.jpg", &panorama, &VectorOfi32::new()).unwrap();
     // imwrite("/home/yucwang/Desktop/cy.jpg", &dst, &VectorOfi32::new()).unwrap();
-    //imwrite("/Users/apple/Desktop/harris_out1.jpg", &dst1, &VectorOfi32::new()).unwrap();
-    //imwrite("/Users/apple/Desktop/harris_out2.jpg", &dst2, &VectorOfi32::new()).unwrap();
+    imwrite("/Users/apple/Desktop/harris_out1.jpg", &images[0], &VectorOfi32::new()).unwrap();
+    imwrite("/Users/apple/Desktop/harris_out2.jpg", &images[1], &VectorOfi32::new()).unwrap();
+    imwrite("/Users/apple/Desktop/harris_out3.jpg", &images[2], &VectorOfi32::new()).unwrap();
     //harris_corner_detector::harris_detect_corner(&image, 3, 0.05, 108.0).unwrap();
 
 //    let mut images: VectorOfMat = VectorOfMat::new();

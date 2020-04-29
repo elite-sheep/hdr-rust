@@ -25,6 +25,7 @@ pub fn blend_image(images: &Vec<Mat>,
             accumulated_offset.push(alignments[i]+accumulated_offset[i-1]);
         }
 
+        log::trace!("{}", alignments[i].x);
         if accumulated_offset[i].y < min_dy {
             min_dy = accumulated_offset[i].y;
         }
@@ -56,7 +57,7 @@ pub fn blend_image(images: &Vec<Mat>,
 
         let mut start_x = 0;
         if i > 0 {
-            start_x = accumulate_width + accumulated_offset[i-1].x;
+            start_x = accumulate_width - accumulated_offset[i-1].x;
         }
         let mut start_y = -min_dy;
         if i > 0 {
