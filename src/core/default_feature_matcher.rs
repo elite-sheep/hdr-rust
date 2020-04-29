@@ -11,32 +11,32 @@ pub fn match_feature(feature_mat1: &Mat,
 
     let mut feature_match: Vec<Point> = Vec::new();
     let mut match_num: i32 = 0;
-    for i in 0..feature_num1 {
-        let cur_feature1 = feature_mat1.row(i).unwrap();
+    for i in 0..feature_num2 {
+        let cur_feature2 = feature_mat2.row(i).unwrap();
 
         let mut first_match_value = std::f64::MAX;
         let mut first_match: i32 = 0;
         let mut second_match_value = std::f64::MAX;
-        let mut second_match: i32 = 0;
+        let mut _second_match: i32 = 0;
 
-        for j in 0..feature_num2 {
-            let cur_feature2 = feature_mat2.row(j).unwrap();
+        for j in 0..feature_num1 {
+            let cur_feature1 = feature_mat1.row(j).unwrap();
             let norm = opencv::core::norm2(&cur_feature1, &cur_feature2,
                                            NORM_L2, &Mat::default()?).unwrap();
             if norm < first_match_value {
                 second_match_value = first_match_value;
-                second_match = first_match;
+                _second_match = first_match;
                 first_match_value = norm;
                 first_match = j;
             } else if norm < second_match_value {
                 second_match_value = norm;
-                second_match = j;
+                _second_match = j;
             }
         }
 
         if first_match_value / second_match_value < threshold {
             match_num += 1;
-            feature_match.push(Point::new(i, first_match));
+            feature_match.push(Point::new(first_match, i));
         }
     }
 

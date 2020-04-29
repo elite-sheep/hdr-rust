@@ -41,7 +41,8 @@ pub fn match_image(image1: &Mat,
 
         if cur_difference < alignment_diff {
             alignment_diff = cur_difference;
-            alignment = feature_matches[cur_match];
+            alignment = cur_alignment - offset;
+            alignment = alignment - offset;
         }
     }
 
