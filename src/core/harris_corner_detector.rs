@@ -85,7 +85,7 @@ pub fn harris_detect_corner(src: &Mat,
                 let mut is_local_maximum = true;
                 for k in 0..8 {
                     let rr = i + mx[k];
-                    let cc = i + my[k];
+                    let cc = j + my[k];
                     if rr >=0 && rr < rows && cc >=0 && cc < cols {
                         if get_pixel::<f32>(&R, rr, cc) > pixel {
                             is_local_maximum = false;
