@@ -29,11 +29,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let image2: Mat = imread("/Users/apple/Pictures/parrington/prtn01.jpg", 1)?;
     let image3: Mat = imread("/Users/apple/Pictures/parrington/prtn00.jpg", 1)?;
     let mut dst1: Mat = Mat::default()?;
-    cy_wrap::cylindrial_wrap(&image1, 704.916, &mut dst1).unwrap();
+    let mut indicies1: Mat = Mat::default()?;
+    cy_wrap::cylindrial_wrap(&image1, 705.849, &mut dst1, &mut indicies1).unwrap();
     let mut dst2 = Mat::default()?;
-    cy_wrap::cylindrial_wrap(&image2, 706.286, &mut dst2).unwrap();
+    let mut indicies2: Mat = Mat::default()?;
+    cy_wrap::cylindrial_wrap(&image2, 706.286, &mut dst2, &mut indicies2).unwrap();
     let mut dst3 = Mat::default()?;
-    cy_wrap::cylindrial_wrap(&image3, 704.516, &mut dst3).unwrap();
+    let mut indicies3: Mat = Mat::default()?;
+    cy_wrap::cylindrial_wrap(&image3, 704.916, &mut dst3, &mut indicies3).unwrap();
     let out_features1 = harris_corner_detector::harris_detect_corner(&dst1, 3, 0.04, 72.0, true).unwrap();
     let out_features2 = harris_corner_detector::harris_detect_corner(&dst2, 3, 0.04, 64.0, true).unwrap();
     let out_features3 = harris_corner_detector::harris_detect_corner(&dst3, 3, 0.04, 64.0, true).unwrap();
@@ -54,12 +57,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     images.push(dst1);
     images.push(dst2);
     images.push(dst3);
+    let mut wrapped_image_indicies: Vec<Mat> = Vec::new();
+    wrapped_image_indicies.push(indicies1);
+    wrapped_image_indicies.push(indicies2);
+    wrapped_image_indicies.push(indicies3);
     let mut alignments: Vec<Point> = Vec::new();
     alignments.push(m1);
     alignments.push(m2);
 
     let mut panorama = Mat::default()?;
-    image_blender::blend_image(&images, &alignments, &mut panorama).unwrap();
+    image_blender::blend_image(&images, &wrapped_image_indicies, &alignments, &mut panorama).unwrap();
 
     log::trace!("Sift feature extraction finished.");
 

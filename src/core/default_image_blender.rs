@@ -9,6 +9,7 @@ use std::error::Error;
 use opencv_utils::{ get_pixel, set_pixel };
 
 pub fn blend_image(images: &Vec<Mat>,
+                   wrapped_indicies: &Vec<Mat>,
                    alignments: &Vec<Point>,
                    out_panorama: &mut Mat) -> Result<(), Box<dyn Error>> {
     log::trace!("Image blending: Start.");
@@ -25,7 +26,6 @@ pub fn blend_image(images: &Vec<Mat>,
             accumulated_offset.push(alignments[i]+accumulated_offset[i-1]);
         }
 
-        log::trace!("{}", alignments[i].x);
         if accumulated_offset[i].y < min_dy {
             min_dy = accumulated_offset[i].y;
         }
@@ -35,23 +35,25 @@ pub fn blend_image(images: &Vec<Mat>,
     }
 
     // Calculate width and height of panorama
-    let mut all_width: i32 = 0;
-    let mut all_height: i32 = 0;
+    let mut all_width: i32 = 16;
+    let mut all_height: i32 = 16;
 
     for image in images {
         all_width += image.cols();
     }
-    all_width += accumulated_offset[image_num-2].x;
+    all_width -= accumulated_offset[image_num-2].x;
 
     all_height += images[0].rows();
     all_height -= min_dy;
     all_height += max_dy;
 
+    log::info!("Constrcuting panorama with size: ({}, {}).", all_width, all_height);
     let mut panorama = Mat::zeros(all_height, all_width, CV_32FC3).unwrap().to_mat().unwrap();
     let mut panorama_weight = Mat::zeros(all_height, all_width, CV_8UC1).unwrap().to_mat().unwrap();
     let mut accumulate_width: i32 = 0;
     for i in 0..image_num {
         let cur_image = &images[i];
+        let cur_image_indicies = &wrapped_indicies[i];
         let cur_rows = images[i].rows();
         let cur_cols = images[i].cols();
 
@@ -61,13 +63,16 @@ pub fn blend_image(images: &Vec<Mat>,
         }
         let mut start_y = -min_dy;
         if i > 0 {
-            start_y += accumulated_offset[i-1].y;
+            start_y -= accumulated_offset[i-1].y;
         }
 
         accumulate_width += cur_image.cols();
 
         for sr in 0..cur_rows {
             for sc in 0..cur_cols {
+                if get_pixel::<u8>(cur_image_indicies, sr, sc) == 0 {
+                    continue;
+                }
                 let cur_status = get_pixel::<u8>(&panorama_weight, start_y+sr, start_x+sc);
                 let cur_pixel = get_pixel::<Vec3b>(&cur_image, sr, sc);
                 if cur_status == 0 {
@@ -90,6 +95,8 @@ pub fn blend_image(images: &Vec<Mat>,
     }
 
     panorama.convert_to(out_panorama, CV_8UC3, 1.0, 0.0).unwrap();
+
+    log::trace!("Panorama construction finished.");
 
     Ok(())
 }

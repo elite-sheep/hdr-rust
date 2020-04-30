@@ -1,6 +1,7 @@
 // Copyright 2020 Yuchen Wong
 
-use opencv::core::{ CV_8UC3, CV_32FC3, Mat, Point, Vec3f, MatTrait};
+use opencv::core::{ CV_8UC1, CV_8UC3, CV_32FC3, Mat, MatExpr, Vec3f, MatTrait};
+use opencv::core::prelude::{ MatExprTrait };
 use std::error::Error;
 
 #[path = "../base/opencv_utils.rs"] mod opencv_utils;
@@ -9,7 +10,8 @@ use opencv_utils::{ get_pixel, set_pixel };
 
 pub fn cylindrial_wrap(src: &Mat,
                        focal_length: f32,
-                       dst: &mut Mat) -> Result<(), Box<dyn Error>> {
+                       dst: &mut Mat,
+                       dst_wrapped_indicies: &mut Mat) -> Result<(), Box<dyn Error>> {
 
     let mut float_src: Mat = Mat::default()?;
     src.convert_to(&mut float_src, CV_32FC3, 1.0, 0.0).unwrap();
@@ -33,6 +35,7 @@ pub fn cylindrial_wrap(src: &Mat,
     let mut tmp_wrapped: Mat = Mat::default()?;
     unsafe {
         tmp_wrapped.create_rows_cols(2*cy_x_max as i32, cols, CV_32FC3).unwrap();
+        *dst_wrapped_indicies = Mat::zeros(2*cy_x_max as i32, cols, CV_8UC1).unwrap().to_mat().unwrap();
     }
 
     for i in 0..tmp_wrapped.rows() {
@@ -70,6 +73,7 @@ pub fn cylindrial_wrap(src: &Mat,
             }
 
             set_pixel::<Vec3f>(&mut tmp_wrapped, i, j, pixel);
+            set_pixel::<u8>(dst_wrapped_indicies, i, j, 1);
         }
     }
 

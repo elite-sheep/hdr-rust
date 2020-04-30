@@ -34,7 +34,7 @@ pub fn match_image(image1: &mut Mat,
         for match_p in feature_matches {
             let pp1 = features1[match_p.x as usize];
             let pp2 = features2[match_p.y as usize];
-            let moved_p = pp2 + offset + cur_alignment;
+            let moved_p = pp2 - offset + cur_alignment;
 
             let dis_p = moved_p - pp1;
             let diff = (dis_p.x * dis_p.x + dis_p.y * dis_p.y) as f32;
